@@ -5,16 +5,14 @@ import com.pedaree.shared.api.SesiAuth
 import com.pedaree.shared.catat.GerbangTulis
 import com.pedaree.shared.dapur.SumberDapur
 import com.pedaree.shared.data.LapisanData
+import com.pedaree.shared.data.hariIniPerangkat
 import com.pedaree.shared.data.StatusAntrean
 import com.pedaree.shared.notif.KartuRingkas
 import com.pedaree.shared.satuan.ModulPantryResep
 import com.pedaree.shared.satuan.ModulPantryResepTertunda
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.todayIn
 
 /**
  * Ketergantungan aplikasi yang disuntikkan dari entri platform (Android/iOS).
@@ -37,7 +35,6 @@ class Deps(
     fun dataBerubah() { versiData.value = versiData.value + 1 }
 }
 
-private fun hariIniPerangkat(): LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
 
 /**
  * Ketergantungan produksi: cache SQLDelight + antrean luring + klien REST ([data]).
