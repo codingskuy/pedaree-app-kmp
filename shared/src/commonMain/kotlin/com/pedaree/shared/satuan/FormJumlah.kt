@@ -12,10 +12,11 @@ data class FormJumlah(
     val komoditas: String,
     val satuanSimpan: Satuan,
     private val validator: ValidasiJumlah,
+    val bolehNol: Boolean = false,
 ) {
     /** `null` selama pengguna belum mengetik apa pun (jangan tampilkan galat pada form kosong). */
     val hasil: HasilValidasi? =
-        if (teks.isBlank()) null else validator.validasi(teks, satuan, komoditas, satuanSimpan)
+        if (teks.isBlank()) null else validator.validasi(teks, satuan, komoditas, satuanSimpan, bolehNol)
 
     val galat: GalatJumlah? get() = (hasil as? HasilValidasi.Tolak)?.galat
     val ringkasan: RingkasanKonversi? get() = (hasil as? HasilValidasi.Valid)?.ringkasan
@@ -33,6 +34,9 @@ fun formJumlahBaru(
     satuanSimpan: Satuan,
     modul: ModulPantryResep,
     satuanAwal: Satuan = satuanSimpan,
+    teksAwal: String = "",
+    bolehNol: Boolean = false,
 ): FormJumlah = FormJumlah(
-    satuan = satuanAwal, komoditas = komoditas, satuanSimpan = satuanSimpan, validator = ValidasiJumlah(modul),
+    teks = teksAwal, satuan = satuanAwal, komoditas = komoditas, satuanSimpan = satuanSimpan,
+    validator = ValidasiJumlah(modul), bolehNol = bolehNol,
 )

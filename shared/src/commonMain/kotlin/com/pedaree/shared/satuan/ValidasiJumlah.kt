@@ -38,14 +38,19 @@ data class RingkasanKonversi(val teks: String?, val disimpanSebagai: Double?, va
  * ditulis di sini: dipanggil lewat [ModulPantryResep]. Server tetap otoritatif.
  */
 class ValidasiJumlah(private val modul: ModulPantryResep) {
-    fun validasi(teks: String, satuan: Satuan, komoditas: String, satuanSimpan: Satuan): HasilValidasi {
+    fun validasi(
+        teks: String, satuan: Satuan, komoditas: String, satuanSimpan: Satuan, bolehNol: Boolean = false,
+    ): HasilValidasi {
         if (teks.isBlank()) return HasilValidasi.Tolak(GalatJumlah.KOSONG)
         val jumlah = parseJumlah(teks) ?: return HasilValidasi.Tolak(GalatJumlah.BUKAN_ANGKA)
-        return validasi(jumlah, satuan, komoditas, satuanSimpan)
+        return validasi(jumlah, satuan, komoditas, satuanSimpan, bolehNol)
     }
 
-    fun validasi(jumlah: Double, satuan: Satuan, komoditas: String, satuanSimpan: Satuan): HasilValidasi {
-        if (jumlah <= 0.0) return HasilValidasi.Tolak(GalatJumlah.NOL_ATAU_NEGATIF)
+    /** [bolehNol] hanya untuk opname (stok fisik 0 sah); alur lain wajib > 0. */
+    fun validasi(
+        jumlah: Double, satuan: Satuan, komoditas: String, satuanSimpan: Satuan, bolehNol: Boolean = false,
+    ): HasilValidasi {
+        if (jumlah < 0.0 || (jumlah == 0.0 && !bolehNol)) return HasilValidasi.Tolak(GalatJumlah.NOL_ATAU_NEGATIF)
         if (satuan.jenis == JenisSatuan.HITUNG && jumlah != kotlin.math.floor(jumlah)) {
             return HasilValidasi.Tolak(GalatJumlah.PECAHAN)
         }
