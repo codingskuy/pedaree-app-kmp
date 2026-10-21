@@ -1,0 +1,31 @@
+name: schemathesis
+# Manual saja; menguji server uji/staging terhadap openapi.yaml backend. Tanpa rahasia dan tanpa telemetri.
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "URL server uji/mock (bukan produksi)"
+        required: true
+        default: "http://localhost:8080"
+      max_examples:
+        description: "Jumlah kasus per operasi"
+        required: false
+        default: "25"
+permissions:
+  contents: read
+jobs:
+  properti:
+    runs-on: ubuntu-latest
+    env:
+      SCHEMATHESIS_TELEMETRY: "off"
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install schemathesis
+      - name: Jalankan Schemathesis
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_URL: ${{ inputs.base_url }}
+          MAX_EXAMPLES: ${{ inputs.max_examples }}
+        run: contract/schemathesis.sh
