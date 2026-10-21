@@ -26,17 +26,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.pedaree.shared.dapur.DetailItemViewModel
-import com.pedaree.shared.dapur.SumberDapur
 import com.pedaree.shared.domain.StatusBatch
 import com.pedaree.shared.domain.StokBatch
 import com.pedaree.shared.tampil.formatJumlah
 
-/** Detail item: ringkasan stok + batch urut FEFO. Tombol alur catat dihubungkan di PDR-KMP-004. */
+/** Aksi navigasi dari detail item ke lima alur catat. */
+class AksiDetail(
+    val masuk: () -> Unit,
+    val pakai: () -> Unit,
+    val opname: () -> Unit,
+    val pindah: (String) -> Unit,
+    val buang: (String) -> Unit,
+)
+
+/** Detail item: ringkasan stok + batch urut FEFO. Tombol memulai kelima alur catat (PDR-KMP-004). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LayarDetailItem(sumber: SumberDapur, itemId: String, kembali: () -> Unit) {
-    val vm = remember(sumber, itemId) { DetailItemViewModel(sumber, itemId) }
-    LaunchedEffect(vm) { vm.muat() }
+fun LayarDetailItem(deps: Deps, itemId: String, aksi: AksiDetail, kembali: () -> Unit) {
+    val vm = remember(deps, itemId) { DetailItemViewModel(deps.sumber, itemId) }
+    val versi = versiDataSaatIni(deps)
+    LaunchedEffect(vm, versi) { vm.muat() }
     val state by vm.state.collectAsState()
 
     Scaffold(
@@ -68,12 +77,13 @@ fun LayarDetailItem(sumber: SumberDapur, itemId: String, kembali: () -> Unit) {
                         )
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(vertical = 8.dp)) {
-                        Button(onClick = {}, enabled = false, modifier = Modifier.testTag("tombol_catat_masuk")) { Text("Catat masuk") }
-                        OutlinedButton(onClick = {}, enabled = false, modifier = Modifier.testTag("tombol_catat_pakai")) { Text("Catat pakai") }
+                        Button(onClick = aksi.masuk, modifier = Modifier.testTag("tombol_catat_masuk")) { Text("Catat masuk") }
+                        OutlinedButton(onClick = aksi.pakai, modifier = Modifier.testTag("tombol_catat_pakai")) { Text("Catat pakai") }
+                        OutlinedButton(onClick = aksi.opname, modifier = Modifier.testTag("tombol_opname")) { Text("Opname") }
                     }
                     Text("Batch (FEFO)", style = MaterialTheme.typography.titleMedium)
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag("detail_batch_daftar")) {
-                        items(state.batchFefo, key = { it.id }) { batch -> BarisBatch(batch, item.satuanSimpan) }
+                        items(state.batchFefo, key = { it.id }) { batch -> BarisBatch(batch, item.satuanSimpan, aksi) }
                     }
                 }
             }
@@ -82,12 +92,23 @@ fun LayarDetailItem(sumber: SumberDapur, itemId: String, kembali: () -> Unit) {
 }
 
 @Composable
-private fun BarisBatch(batch: StokBatch, satuan: com.pedaree.shared.domain.Satuan) {
+private fun BarisBatch(batch: StokBatch, satuan: com.pedaree.shared.domain.Satuan, aksi: AksiDetail) {
     Card(modifier = Modifier.fillMaxWidth().testTag("detail_batch_${batch.id}")) {
         Column(Modifier.padding(12.dp)) {
             Text("${formatJumlah(batch.jumlahAktif, satuan)} dari ${formatJumlah(batch.jumlahAwal, satuan)}")
             Text("Masuk ${batch.tanggalMasuk} | Kedaluwarsa ${batch.tanggalKedaluwarsa ?: "tidak ada"}")
             Text("${batch.lokasi.nama} | ${batch.status.name}", color = if (batch.status == StatusBatch.KEDALUWARSA) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface)
+            if (batch.jumlahAktif > 0.0) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // SOP: batch KEDALUWARSA hanya punya aksi `Buang dan catat` (terkunci dari FEFO dan pindah).
+                    if (batch.status == StatusBatch.AKTIF) {
+                        OutlinedButton(onClick = { aksi.pindah(batch.id) }, modifier = Modifier.testTag("tombol_pindah_${batch.id}")) { Text("Pindah") }
+                    }
+                    OutlinedButton(onClick = { aksi.buang(batch.id) }, modifier = Modifier.testTag("tombol_buang_${batch.id}")) {
+                        Text(if (batch.status == StatusBatch.KEDALUWARSA) "Buang dan catat" else "Buang")
+                    }
+                }
+            }
         }
     }
 }

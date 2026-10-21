@@ -7,6 +7,13 @@ sealed interface Rute {
 
     /** Detail satu item + batch FEFO. */
     data class DetailItem(val itemId: String) : Rute
+
+    // Lima alur catat stok (produk/10-alur-catat-stok.md): maksimal 3 langkah (form, konfirmasi, hasil).
+    data class CatatMasuk(val itemId: String) : Rute
+    data class CatatPakai(val itemId: String) : Rute
+    data class Opname(val itemId: String) : Rute
+    data class Pindah(val itemId: String, val batchId: String) : Rute
+    data class Buang(val itemId: String, val batchId: String) : Rute
 }
 
 /**

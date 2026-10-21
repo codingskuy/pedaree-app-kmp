@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.pedaree.shared.dapur.DapurViewModel
-import com.pedaree.shared.dapur.SumberDapur
 import com.pedaree.shared.domain.PantryItemRingkas
 import com.pedaree.shared.domain.StatusStok
 import com.pedaree.shared.tampil.formatJumlah
@@ -36,9 +35,10 @@ import com.pedaree.shared.tampil.formatJumlah
 /** Layar Dapur: daftar item stok + filter status + badge item menipis/habis. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LayarDapur(sumber: SumberDapur, bukaItem: (String) -> Unit) {
-    val vm = remember(sumber) { DapurViewModel(sumber) }
-    LaunchedEffect(vm) { vm.muat() }
+fun LayarDapur(deps: Deps, bukaItem: (String) -> Unit) {
+    val vm = remember(deps) { DapurViewModel(deps.sumber) }
+    val versi = versiDataSaatIni(deps)
+    LaunchedEffect(vm, versi) { vm.muat() }
     val state by vm.state.collectAsState()
 
     Scaffold(

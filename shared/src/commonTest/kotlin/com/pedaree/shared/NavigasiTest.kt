@@ -32,4 +32,16 @@ class NavigasiTest {
         t.buka(Rute.DetailItem("itm_1"))
         assertEquals(2, t.daftar.size)
     }
+
+    @Test fun rutaAlurCatatBisaDitumpukDanKembali() {
+        val t = TumpukanRute()
+        t.buka(Rute.DetailItem("itm_1"))
+        t.buka(Rute.CatatMasuk("itm_1"))
+        t.buka(Rute.Buang("itm_1", "btc_1"))
+        assertEquals(4, t.daftar.size)
+        assertTrue(t.kembali())
+        assertEquals(Rute.CatatMasuk("itm_1"), t.atas)
+        assertTrue(t.kembali())
+        assertEquals(Rute.DetailItem("itm_1"), t.atas)
+    }
 }

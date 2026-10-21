@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
-import com.pedaree.shared.dapur.ContohSumberDapur
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,7 +15,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             // testTag terekspos sebagai resource-id agar terbaca selector Maestro (`id:`).
             Box(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
-                PedareeApp(sumber = ContohSumberDapur())
+                PedareeApp(depsPengembangan())
             }
         }
     }
