@@ -17,12 +17,12 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class DapurTest {
-    @Test fun muatMengisiDaftarDanBadge() = runTest {
+    @Test fun muatMengisiDaftarDanJumlahMenipisHabis() = runTest {
         val vm = DapurViewModel(ContohSumberDapur())
         vm.muat()
         val s = vm.state.value
         assertEquals(3, s.semua.size)
-        assertEquals(1, s.badge) // Bayam habis; Bawang Merah (650 > 250) dan Garam (500 > 250) aman.
+        assertEquals(1, s.jumlahMenipisHabis) // Bayam habis; Bawang Merah (650 > 250) dan Garam (500 > 250) aman.
     }
 
     @Test fun filterStatusKategoriDanKata() = runTest {

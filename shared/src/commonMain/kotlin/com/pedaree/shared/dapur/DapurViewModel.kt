@@ -23,8 +23,8 @@ data class DapurState(
                 (kata.isBlank() || item.nama.contains(kata.trim(), ignoreCase = true))
         }
 
-    /** Angka badge tab Dapur: item menipis atau habis. */
-    val badge: Int get() = semua.count { it.statusStok != StatusStok.AMAN }
+    /** Jumlah item menipis atau habis (bukan badge tab; badge = batch yang butuh tindakan kedaluwarsa, lihat KartuRingkas). */
+    val jumlahMenipisHabis: Int get() = semua.count { it.statusStok != StatusStok.AMAN }
 }
 
 class DapurViewModel(private val sumber: SumberDapur) {
