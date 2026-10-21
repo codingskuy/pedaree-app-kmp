@@ -29,6 +29,8 @@ class PengirimAntrean(
     private val antrean: AntreanTulis,
     private val api: KlienApi,
     private val sekarang: () -> Long,
+    /** Dipanggil saat entri yang sudah diantrekan ditolak server (mis. untuk membatalkan catatan lokal turunan). */
+    private val setelahDitolak: (EntriAntrean) -> Unit = {},
 ) {
     private val kunci = Mutex()
 
@@ -63,6 +65,7 @@ class PengirimAntrean(
                 }
                 is HasilHttp.Ditolak -> {
                     antrean.tandaiDitolak(kepala.seq, h.galat)
+                    setelahDitolak(kepala)
                     ditolak++
                     if (kepala.seq == sampaiSeq) hasilEntri = HasilEntri.Ditolak(h.galat)
                 }

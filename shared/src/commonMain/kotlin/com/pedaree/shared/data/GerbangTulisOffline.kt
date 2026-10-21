@@ -14,12 +14,14 @@ class GerbangTulisOffline(
     private val antrean: AntreanTulis,
     private val pengirim: PengirimAntrean,
     private val setelahTulis: () -> Unit = {},
+    /** Dipanggil untuk perintah yang tidak ditolak langsung (terkirim atau diantrekan), mis. mencatat buang lokal. */
+    private val diterima: (EntriAntrean, PerintahTulis) -> Unit = { _, _ -> },
 ) : GerbangTulis {
     override suspend fun kirim(perintah: PerintahTulis): HasilTulis {
         val entri = antrean.tambah(perintah)
         val hasil = pengirim.kurasSampai(entri.seq)
         // Penolakan langsung ditampilkan ke pengguna; tidak perlu ditahan di antrean.
-        if (hasil is PengirimAntrean.HasilEntri.Ditolak) antrean.hapus(entri.seq)
+        if (hasil is PengirimAntrean.HasilEntri.Ditolak) antrean.hapus(entri.seq) else diterima(entri, perintah)
         setelahTulis()
         return hasil.keHasilTulis()
     }

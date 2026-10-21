@@ -1,0 +1,35 @@
+-- Riwayat push per item (aturan "naik tingkat saja" dan "maks 1 per item per hari").
+CREATE TABLE notif_log (
+    item_id TEXT NOT NULL PRIMARY KEY,
+    status TEXT NOT NULL,
+    tanggal TEXT NOT NULL
+);
+
+-- Catatan buang yang dibuat di perangkat ini, untuk kartu "buang bulan ini".
+-- ASUMSI: openapi mobile belum punya endpoint rekap waste (hanya /web/dashboard untuk web), jadi dihitung lokal.
+CREATE TABLE buang_log (
+    request_id TEXT NOT NULL PRIMARY KEY,
+    batch_id TEXT NOT NULL,
+    jumlah REAL NOT NULL,
+    satuan TEXT NOT NULL,
+    alasan TEXT NOT NULL,
+    tanggal TEXT NOT NULL
+);
+
+semuaNotif:
+SELECT item_id, status, tanggal FROM notif_log;
+
+simpanNotif:
+INSERT OR REPLACE INTO notif_log(item_id, status, tanggal) VALUES (?, ?, ?);
+
+hapusNotif:
+DELETE FROM notif_log WHERE item_id = ?;
+
+catatBuang:
+INSERT OR IGNORE INTO buang_log(request_id, batch_id, jumlah, satuan, alasan, tanggal) VALUES (?, ?, ?, ?, ?, ?);
+
+hapusBuang:
+DELETE FROM buang_log WHERE request_id = ?;
+
+buangRentang:
+SELECT satuan, SUM(jumlah) AS total, COUNT(*) AS kali FROM buang_log WHERE tanggal >= ? AND tanggal < ? GROUP BY satuan;
