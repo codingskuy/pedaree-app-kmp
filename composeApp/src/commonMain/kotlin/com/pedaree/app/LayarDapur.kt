@@ -54,6 +54,13 @@ fun LayarDapur(deps: Deps, bukaItem: (String) -> Unit) {
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
+            val antrean by deps.status.collectAsState()
+            if (antrean.menunggu > 0) {
+                Text("${antrean.menunggu} perubahan menunggu dikirim", modifier = Modifier.testTag("dapur_sinkron"))
+            }
+            if (antrean.ditolak > 0) {
+                Text("${antrean.ditolak} perubahan ditolak server", color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("dapur_ditolak"))
+            }
             OutlinedTextField(
                 value = state.kata,
                 onValueChange = vm::setKata,

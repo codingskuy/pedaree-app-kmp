@@ -1,11 +1,16 @@
 package com.pedaree.app
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
 import com.pedaree.shared.nav.Rute
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * Akar aplikasi. Navigation3: back stack adalah daftar [Rute] yang diamati Compose;
@@ -16,7 +21,21 @@ fun PedareeApp(deps: Deps) {
     val tumpukan = remember { mutableStateListOf<Rute>(Rute.Dapur) }
     val buka: (Rute) -> Unit = { tujuan -> if (tumpukan.last() != tujuan) tumpukan.add(tujuan) }
     val kembali: () -> Unit = { if (tumpukan.size > 1) tumpukan.removeAt(tumpukan.lastIndex) }
+    val masuk by (deps.sesi?.masuk ?: remember { MutableStateFlow(true) }).collectAsState()
     PedareeTema {
+        if (!masuk) {
+            LayarLogin(deps)
+            return@PedareeTema
+        }
+        // Sinkron antrean luring: saat aplikasi aktif lalu berkala (ASUMSI: 60 dtk; latar belakang/WorkManager belum ada).
+        LaunchedEffect(Unit) {
+            while (true) {
+                val sebelum = deps.status.value.menunggu
+                deps.kuras()
+                if (deps.status.value.menunggu < sebelum) deps.dataBerubah()
+                delay(60_000)
+            }
+        }
         NavDisplay(
             backStack = tumpukan,
             onBack = kembali,
