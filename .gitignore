@@ -8,3 +8,4 @@ local.properties
 # graphify (graf pengetahuan lokal)
 graphify-out/
 *.hprof
+.kotlin/
