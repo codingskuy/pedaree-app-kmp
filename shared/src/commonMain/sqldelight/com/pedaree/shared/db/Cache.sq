@@ -1,0 +1,38 @@
+-- Cache stok untuk baca luring. Isi disimpan sebagai JSON kontrak (PantryItemRingkas / PantryItemDetail).
+CREATE TABLE cache_ringkas (
+    id TEXT NOT NULL PRIMARY KEY,
+    urutan INTEGER NOT NULL,
+    json TEXT NOT NULL
+);
+
+CREATE TABLE cache_detail (
+    id TEXT NOT NULL PRIMARY KEY,
+    json TEXT NOT NULL,
+    diperbarui INTEGER NOT NULL
+);
+
+CREATE TABLE meta (
+    kunci TEXT NOT NULL PRIMARY KEY,
+    nilai TEXT NOT NULL
+);
+
+semuaRingkas:
+SELECT json FROM cache_ringkas ORDER BY urutan;
+
+hapusRingkas:
+DELETE FROM cache_ringkas;
+
+simpanRingkas:
+INSERT OR REPLACE INTO cache_ringkas(id, urutan, json) VALUES (?, ?, ?);
+
+detail:
+SELECT json FROM cache_detail WHERE id = ?;
+
+simpanDetail:
+INSERT OR REPLACE INTO cache_detail(id, json, diperbarui) VALUES (?, ?, ?);
+
+bacaMeta:
+SELECT nilai FROM meta WHERE kunci = ?;
+
+simpanMeta:
+INSERT OR REPLACE INTO meta(kunci, nilai) VALUES (?, ?);

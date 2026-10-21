@@ -1,0 +1,48 @@
+-- Antrean tulis luring (FIFO). seq = urutan kirim; request_id = X-Request-Id (UUID) yang DIPAKAI ULANG
+-- pada setiap percobaan kirim agar server (idempoten 24 jam) tidak menggandakan mutasi.
+CREATE TABLE antrean (
+    seq INTEGER PRIMARY KEY AUTOINCREMENT,
+    request_id TEXT NOT NULL UNIQUE,
+    jenis TEXT NOT NULL,
+    jalur TEXT NOT NULL,
+    badan TEXT NOT NULL,
+    dibuat INTEGER NOT NULL,
+    percobaan INTEGER NOT NULL DEFAULT 0,
+    coba_lagi_pada INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'MENUNGGU',
+    galat_kode TEXT,
+    galat_pesan TEXT
+);
+
+tambah:
+INSERT INTO antrean(request_id, jenis, jalur, badan, dibuat) VALUES (?, ?, ?, ?, ?);
+
+kepalaMenunggu:
+SELECT * FROM antrean WHERE status = 'MENUNGGU' ORDER BY seq LIMIT 1;
+
+semuaMenunggu:
+SELECT * FROM antrean WHERE status = 'MENUNGGU' ORDER BY seq;
+
+ditolak:
+SELECT * FROM antrean WHERE status = 'DITOLAK' ORDER BY seq;
+
+berdasarkanSeq:
+SELECT * FROM antrean WHERE seq = ?;
+
+hapus:
+DELETE FROM antrean WHERE seq = ?;
+
+jadwalkanUlang:
+UPDATE antrean SET percobaan = percobaan + 1, coba_lagi_pada = ? WHERE seq = ?;
+
+tandaiDitolak:
+UPDATE antrean SET status = 'DITOLAK', galat_kode = ?, galat_pesan = ? WHERE seq = ?;
+
+jumlahMenunggu:
+SELECT COUNT(*) FROM antrean WHERE status = 'MENUNGGU';
+
+jumlahDitolak:
+SELECT COUNT(*) FROM antrean WHERE status = 'DITOLAK';
+
+lastInsertRowId:
+SELECT last_insert_rowid();
