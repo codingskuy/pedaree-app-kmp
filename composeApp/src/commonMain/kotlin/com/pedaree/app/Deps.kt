@@ -6,6 +6,7 @@ import com.pedaree.shared.catat.GerbangTulis
 import com.pedaree.shared.dapur.SumberDapur
 import com.pedaree.shared.data.LapisanData
 import com.pedaree.shared.data.StatusAntrean
+import com.pedaree.shared.notif.KartuRingkas
 import com.pedaree.shared.satuan.ModulPantryResep
 import com.pedaree.shared.satuan.ModulPantryResepTertunda
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +30,8 @@ class Deps(
     val masuk: suspend (String, String) -> HasilHttp = { _, _ -> HasilHttp.SesiHabis },
     val kuras: suspend () -> Unit = {},
     val status: StateFlow<StatusAntrean> = MutableStateFlow(StatusAntrean()),
+    val muatKartu: suspend () -> KartuRingkas = { KartuRingkas() },
+    val evaluasiNotifikasi: suspend () -> Unit = {},
 ) {
     val versiData = MutableStateFlow(0)
     fun dataBerubah() { versiData.value = versiData.value + 1 }
@@ -49,4 +52,6 @@ fun depsNyata(data: LapisanData): Deps = Deps(
     masuk = data::masuk,
     kuras = { data.kuras() },
     status = data.status,
+    muatKartu = { data.kartu(hariIniPerangkat()) },
+    evaluasiNotifikasi = { data.evaluasiNotifikasi() },
 )

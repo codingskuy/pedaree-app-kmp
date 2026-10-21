@@ -33,6 +33,7 @@ fun PedareeApp(deps: Deps) {
                 val sebelum = deps.status.value.menunggu
                 deps.kuras()
                 if (deps.status.value.menunggu < sebelum) deps.dataBerubah()
+                deps.evaluasiNotifikasi() // hanya mengirim di jendela 06:30-20:00 WIB
                 delay(60_000)
             }
         }

@@ -23,6 +23,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -30,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.pedaree.shared.dapur.DapurViewModel
 import com.pedaree.shared.domain.PantryItemRingkas
 import com.pedaree.shared.domain.StatusStok
+import com.pedaree.shared.notif.KartuRingkas
 import com.pedaree.shared.tampil.formatJumlah
 
 /** Layar Dapur: daftar item stok + filter status + badge item menipis/habis. */
@@ -40,14 +43,16 @@ fun LayarDapur(deps: Deps, bukaItem: (String) -> Unit) {
     val versi = versiDataSaatIni(deps)
     LaunchedEffect(vm, versi) { vm.muat() }
     val state by vm.state.collectAsState()
+    var kartu by remember { mutableStateOf(KartuRingkas()) }
+    LaunchedEffect(deps, versi) { kartu = runCatching { deps.muatKartu() }.getOrDefault(KartuRingkas()) }
 
     Scaffold(
         topBar = {
             TopAppBar(title = {
                 Row {
                     Text("Dapur", modifier = Modifier.testTag("dapur_judul"))
-                    if (state.badge > 0) {
-                        Badge(modifier = Modifier.padding(start = 8.dp).testTag("dapur_badge")) { Text("${state.badge}") }
+                    if (kartu.perluTindakan > 0) {
+                        Badge(modifier = Modifier.padding(start = 8.dp).testTag("dapur_badge")) { Text("${kartu.perluTindakan}") }
                     }
                 }
             })
@@ -61,6 +66,7 @@ fun LayarDapur(deps: Deps, bukaItem: (String) -> Unit) {
             if (antrean.ditolak > 0) {
                 Text("${antrean.ditolak} perubahan ditolak server", color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("dapur_ditolak"))
             }
+            KartuRingkasan(kartu)
             OutlinedTextField(
                 value = state.kata,
                 onValueChange = vm::setKata,
@@ -107,6 +113,26 @@ private fun BarisItem(item: PantryItemRingkas, bukaItem: (String) -> Unit) {
                 Text(item.statusStok.name, color = warnaStatus(item.statusStok), modifier = Modifier.testTag("item_status_${item.id}"))
             }
             item.batchTerdekatKedaluwarsa?.let { Text("Kedaluwarsa terdekat: $it", style = MaterialTheme.typography.bodySmall) }
+        }
+    }
+}
+
+/** Tiga kartu ringkas: habis hari ini, segera (3 hari), dibuang bulan ini. */
+@Composable
+private fun KartuRingkasan(kartu: KartuRingkas) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).testTag("kartu_ringkas")) {
+        SatuKartu("Habis hari ini", "${kartu.habisHariIni}", "kartu_hari_ini", Modifier.weight(1f))
+        SatuKartu("Segera (3 hari)", "${kartu.segeraTigaHari}", "kartu_segera", Modifier.weight(1f))
+        SatuKartu("Dibuang bulan ini", kartu.buangBulanIni.teks(), "kartu_buang", Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun SatuKartu(judul: String, nilai: String, tag: String, modifier: Modifier) {
+    Card(modifier = modifier.testTag(tag)) {
+        Column(Modifier.padding(8.dp)) {
+            Text(judul, style = MaterialTheme.typography.labelSmall)
+            Text(nilai, style = MaterialTheme.typography.titleMedium, modifier = Modifier.testTag("${tag}_nilai"))
         }
     }
 }

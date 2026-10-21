@@ -26,6 +26,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.pedaree.shared.dapur.DetailItemViewModel
+import com.pedaree.shared.dapur.PeringatanBatch
+import com.pedaree.shared.dapur.peringatan
+import com.pedaree.shared.notif.AksiSop
+import com.pedaree.shared.domain.StatusKedaluwarsa
 import com.pedaree.shared.domain.StatusBatch
 import com.pedaree.shared.domain.StokBatch
 import com.pedaree.shared.tampil.formatJumlah
@@ -69,13 +73,7 @@ fun LayarDetailItem(deps: Deps, itemId: String, aksi: AksiDetail, kembali: () ->
                         modifier = Modifier.testTag("detail_stok"),
                     )
                     Text("Lokasi: ${item.lokasiDefault.nama} | Minimum: ${formatJumlah(item.stokMinimum, item.satuanSimpan)}")
-                    if (state.batchKedaluwarsa.isNotEmpty()) {
-                        Text(
-                            "Ada batch kedaluwarsa: buang dan catat.",
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.testTag("detail_banner_kedaluwarsa"),
-                        )
-                    }
+                    state.peringatan(deps.hariIni()).forEach { BannerKedaluwarsa(it, aksi) }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(vertical = 8.dp)) {
                         Button(onClick = aksi.masuk, modifier = Modifier.testTag("tombol_catat_masuk")) { Text("Catat masuk") }
                         OutlinedButton(onClick = aksi.pakai, modifier = Modifier.testTag("tombol_catat_pakai")) { Text("Catat pakai") }
@@ -107,6 +105,36 @@ private fun BarisBatch(batch: StokBatch, satuan: com.pedaree.shared.domain.Satua
                     OutlinedButton(onClick = { aksi.buang(batch.id) }, modifier = Modifier.testTag("tombol_buang_${batch.id}")) {
                         Text(if (batch.status == StatusBatch.KEDALUWARSA) "Buang dan catat" else "Buang")
                     }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Banner kedaluwarsa satu batch dengan aksi wajib SOP: WASPADA `Lihat resep`; SEGERA `Lihat resep` + `Catat pakai`;
+ * HARI_INI `Catat pakai` + `Buang`; KEDALUWARSA hanya `Buang dan catat`. `Lihat resep` BELUM ditampilkan karena
+ * tautan ke Pawonee belum punya kontrak (dilaporkan di PR PDR-KMP-006).
+ */
+@Composable
+private fun BannerKedaluwarsa(p: PeringatanBatch, aksi: AksiDetail) {
+    val tag = "detail_banner_${p.batch.id}"
+    Card(modifier = Modifier.fillMaxWidth().testTag(tag)) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                p.pesan,
+                color = if (p.status == StatusKedaluwarsa.KEDALUWARSA || p.status == StatusKedaluwarsa.HARI_INI) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.testTag("${tag}_pesan"),
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (AksiSop.CATAT_PAKAI in p.aksi) {
+                    OutlinedButton(onClick = aksi.pakai, modifier = Modifier.testTag("${tag}_pakai")) { Text("Catat pakai") }
+                }
+                if (AksiSop.BUANG in p.aksi) {
+                    OutlinedButton(onClick = { aksi.buang(p.batch.id) }, modifier = Modifier.testTag("${tag}_buang")) { Text("Buang") }
+                }
+                if (AksiSop.BUANG_DAN_CATAT in p.aksi) {
+                    Button(onClick = { aksi.buang(p.batch.id) }, modifier = Modifier.testTag("${tag}_buang_catat")) { Text("Buang dan catat") }
                 }
             }
         }

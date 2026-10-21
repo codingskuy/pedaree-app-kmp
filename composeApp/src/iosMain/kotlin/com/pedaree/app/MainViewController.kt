@@ -1,5 +1,6 @@
 package com.pedaree.app
 
+import androidx.compose.runtime.remember
 import androidx.compose.ui.window.ComposeUIViewController
 import com.pedaree.shared.api.PenyimpanTokenMemori
 import com.pedaree.shared.api.SesiAuth
@@ -12,5 +13,5 @@ import platform.UIKit.UIViewController
 @Suppress("unused", "FunctionName")
 fun MainViewController(): UIViewController {
     val data = LapisanData(driverPedaree(), URL_API_PRODUKSI, SesiAuth(PenyimpanTokenMemori()))
-    return ComposeUIViewController { PedareeApp(depsNyata(data)) }
+    return ComposeUIViewController { PedareeApp(remember { depsNyata(data) }) }
 }
