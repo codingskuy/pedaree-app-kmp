@@ -4,3 +4,7 @@ local.properties
 *.iml
 .idea/
 .DS_Store
+
+# graphify (graf pengetahuan lokal)
+graphify-out/
+*.hprof
